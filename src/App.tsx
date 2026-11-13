@@ -4,6 +4,7 @@ import { ComponentCard } from './components/ComponentCard';
 import { useComponentGenerator } from './hooks/useComponentGenerator';
 import type { Provider } from './types';
 import './App.css';
+import { useStoredState } from './hooks/useStoredState';
 
 const PROVIDER_CONFIG = {
   anthropic: { label: 'Anthropic', placeholder: 'sk-ant-...' },
@@ -11,14 +12,14 @@ const PROVIDER_CONFIG = {
 } as const;
 
 function App() {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useStoredState('component-studio.api-key', '', (value) => typeof value === 'string' ? value : '');
   const [showKey, setShowKey] = useState(false);
-  const [provider, setProvider] = useState<Provider>('google');
+  const [provider, setProvider] = useStoredState<Provider>('component-studio.provider', 'google', (value) => value === 'anthropic' ? 'anthropic' : 'google');
   const [envKeys, setEnvKeys] = useState<Record<Provider, boolean>>({
     anthropic: false,
     google: false,
   });
-  const { components, isLoading, error, generate, removeComponent, clearAll } =
+  const { components, promptHistory, isLoading, error, pendingComponent, generate, removeComponent, clearAll } =
     useComponentGenerator();
 
   useEffect(() => {
@@ -58,7 +59,7 @@ function App() {
 
       <main className="workspace">
         <section className="composer-panel" aria-label="컴포넌트 생성"><div className="window-bar"><span className="window-dot" />새 컴포넌트<span className="window-controls" aria-hidden="true">− □ ×</span></div>
-          <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+          <PromptInput onGenerate={handleGenerate} isLoading={isLoading} promptHistory={promptHistory} />
         </section>
 
         <aside className="settings-panel" aria-label="실행 설정">
@@ -127,14 +128,8 @@ function App() {
           </div>
         )}
 
-        {isLoading && (
-          <div className="loading-card">
-            <div className="loading-pulse" />
-            <p>컴포넌트를 생성하고 있습니다...</p>
-          </div>
-        )}
-
         <div className="results-grid">
+          {pendingComponent && <ComponentCard key={`pending-${pendingComponent.id}`} component={pendingComponent} onRemove={removeComponent} onRegenerate={handleGenerate} isLoading isStreaming />}
           {components.map((component) => (
             <ComponentCard
               key={component.id}

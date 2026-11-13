@@ -3,12 +3,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  // Tests use synthetic data and must not load local credential files.
+  envDir: mode === 'test' ? false : undefined,
   plugins: [react()],
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3002',
+        target: `http://localhost:${process.env.API_PORT || 3002}`,
         changeOrigin: true,
       },
     },
@@ -19,4 +21,4 @@ export default defineConfig({
     css: false,
     include: ['src/**/*.test.{ts,tsx}', 'server/**/*.test.ts'],
   },
-})
+}))

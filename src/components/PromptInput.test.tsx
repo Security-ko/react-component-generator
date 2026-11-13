@@ -55,3 +55,9 @@ describe('PromptInput', () => {
     expect(onGenerate).toHaveBeenCalledExactlyOnceWith('가'.repeat(500));
   });
 });
+it('히스토리를 선택하면 프롬프트 입력을 복원한다', async () => {
+  const user = userEvent.setup();
+  render(<PromptInput onGenerate={vi.fn()} isLoading={false} promptHistory={['이전 카드']} />);
+  await user.click(screen.getByRole('button', { name: '이전 카드' }));
+  expect(screen.getByRole('textbox')).toHaveValue('이전 카드');
+});
