@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run",
+    "test": "python -B -m unittest discover -s .codex/hooks -p 'test_*.py' && vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
