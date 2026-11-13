@@ -4,6 +4,7 @@ import { isPromptLengthValid } from '../utils/promptValidation';
 interface PromptInputProps {
   onGenerate: (prompt: string) => void;
   isLoading: boolean;
+  promptHistory?: string[];
 }
 
 const EXAMPLES = [
@@ -15,7 +16,7 @@ const EXAMPLES = [
   '테이블 행 상세보기 패널. 선택한 고객의 기본 정보와 최근 활동 표시',
 ];
 
-export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
+export function PromptInput({ onGenerate, isLoading, promptHistory = [] }: PromptInputProps) {
   const [prompt, setPrompt] = useState('');
   const errorId = useId();
   const isLengthValid = isPromptLengthValid(prompt);
@@ -69,6 +70,14 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
         </button>
         <span className="shortcut-hint">Ctrl / ⌘ + Enter로 생성</span>
       </form>
+      {promptHistory.length > 0 && (
+        <div className="prompt-examples" aria-label="프롬프트 히스토리">
+          <span className="examples-label">최근 프롬프트</span>
+          {promptHistory.map((item, index) => (
+            <button key={`${index}-${item}`} type="button" className="example-chip" onClick={() => setPrompt(item)}>{item}</button>
+          ))}
+        </div>
+      )}
       <div className="prompt-examples">
         <span className="examples-label">이런 것부터 시작해보세요</span>
         {EXAMPLES.map((example) => (
