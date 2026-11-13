@@ -19,7 +19,7 @@ function App() {
     anthropic: false,
     google: false,
   });
-  const { components, promptHistory, isLoading, error, generate, removeComponent, clearAll } =
+  const { components, promptHistory, isLoading, error, pendingComponent, generate, removeComponent, clearAll } =
     useComponentGenerator();
 
   useEffect(() => {
@@ -128,14 +128,8 @@ function App() {
           </div>
         )}
 
-        {isLoading && (
-          <div className="loading-card">
-            <div className="loading-pulse" />
-            <p>컴포넌트를 생성하고 있습니다...</p>
-          </div>
-        )}
-
         <div className="results-grid">
+          {pendingComponent && <ComponentCard key={`pending-${pendingComponent.id}`} component={pendingComponent} onRemove={removeComponent} onRegenerate={handleGenerate} isLoading isStreaming />}
           {components.map((component) => (
             <ComponentCard
               key={component.id}

@@ -8,12 +8,13 @@ interface ComponentCardProps {
   onRemove: (id: string) => void;
   onRegenerate: (prompt: string) => void;
   isLoading: boolean;
+  isStreaming?: boolean;
 }
 
 type Tab = 'preview' | 'code';
 
-export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: ComponentCardProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('preview');
+export function ComponentCard({ component, onRemove, onRegenerate, isLoading, isStreaming = false }: ComponentCardProps) {
+  const [activeTab, setActiveTab] = useState<Tab>(isStreaming ? 'code' : 'preview');
   const [previewKey, setPreviewKey] = useState(0);
   const createdAt = component.createdAt.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
@@ -27,7 +28,7 @@ export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: 
           <span>{createdAt}</span>
           <p className="card-prompt">{component.prompt}</p>
         </div>
-        <div className="card-actions">
+        {isStreaming ? <span role="status">코드를 생성하고 있습니다...</span> : <div className="card-actions">
           <button
             className="btn-refresh"
             onClick={() => setPreviewKey((k) => k + 1)}
@@ -49,12 +50,13 @@ export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: 
           >
             삭제
           </button>
-        </div>
+        </div>}
       </div>
       <div className="card-tabs">
         <button
           className={`tab ${activeTab === 'preview' ? 'tab--active' : ''}`}
           onClick={() => setActiveTab('preview')}
+          disabled={isStreaming}
         >
           미리보기
         </button>

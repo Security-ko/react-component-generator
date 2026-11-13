@@ -4,7 +4,7 @@ import { useComponentGenerator } from './useComponentGenerator';
 beforeEach(() => {
   const values = new Map<string, string>();
   vi.stubGlobal('localStorage', { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => values.set(key, value) });
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ code: 'render(<div />)' }) }));
+  vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response('data: {"type":"done","code":"render(<div />)"}\n\n')));
 });
 it('restores generated components with Date values after remount', async () => {
   const first = renderHook(useComponentGenerator);
@@ -38,4 +38,17 @@ it('persists individual deletion and clearing the component list', async () => {
 it('ignores malformed saved components', () => {
   localStorage.setItem('component-studio.components', JSON.stringify([{ id: 'bad', prompt: 'bad', code: 'bad', createdAt: 'invalid' }, null]));
   expect(renderHook(useComponentGenerator).result.current.components).toEqual([]);
+});
+
+it.each([
+  'data: {"type":"delta","text":"partial"}\n\n',
+  'data: {"type":"error","error":"try again"}\n\n',
+])('does not save incomplete or failed streams', async (body) => {
+  vi.mocked(fetch).mockResolvedValue(new Response(body));
+  const hook = renderHook(useComponentGenerator);
+  await act(() => hook.result.current.generate('card', undefined, 'google'));
+  expect(hook.result.current.components).toEqual([]);
+  expect(hook.result.current.pendingComponent).toBeNull();
+  expect(hook.result.current.isLoading).toBe(false);
+  expect(hook.result.current.error).toBeTruthy();
 });
